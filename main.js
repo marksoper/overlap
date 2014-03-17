@@ -71,8 +71,19 @@ Overlap.new = function(props) {
 
   o.build = function() {
     o.rects = [];
+    var ystart = 0 + o.margin;
+    while (o.y < o.height) {
+      if (o.rects.length === 0) {
+        ystart = o.rects[o.rects.length - 1][0].dy
+      }
+      var o.rects.push(o.buildRow(ystart));
+    }
+  };
+
+  o.buildRow = function(ystart) {
+    var rects = [];
     o.x = 0 + o.margin;
-    o.y = 0 + o.margin;
+    o.y = ystart;
     while (o.x < o.width) {
 
       if (o.ly) {
@@ -88,7 +99,7 @@ Overlap.new = function(props) {
 
         if (segs.length === 0) {
           console.log(" no seg ");
-          o.dx = o.gapmin + Math.floor(Math.random() * (o.gapmax - o.gapmin));
+          o.dx = o.x + o.gapmin + Math.floor(Math.random() * (o.gapmax - o.gapmin));
           o.x = o.dx;
           o.ly = 0;
           continue;
@@ -114,7 +125,7 @@ Overlap.new = function(props) {
         dx: o.dx,
         dy: o.dy
       });
-      o.rects.push(r);
+      rects.push(r);
 
       console.log("drawing rect with x: " + [o.x, o.y, o.dx, o.dy].join(" , "));
 
@@ -123,6 +134,9 @@ Overlap.new = function(props) {
       o.x = o.dx;
       o.ly = o.dy;
     }
+
+    return rects;
+
   };
 
   o.drawRect = function(r) {
