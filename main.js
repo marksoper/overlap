@@ -64,7 +64,9 @@ Overlap.new = function(props) {
     hmax: props.hmax || 100,
     wmin: props.wmin || 50,
     wmax: props.wmax || 200,
-    space: props.space || 32
+    space: props.space || 32,
+    gapmin: props.gapmin || 30,
+    gapmax: props.gapmax || 60
   };
 
   o.build = function() {
@@ -72,13 +74,7 @@ Overlap.new = function(props) {
     o.x = 0 + o.margin;
     o.y = 0 + o.margin;
     while (o.x < o.width) {
-      //
-      // Note problem here with last rect in row potentially being smaller than wmin
-      //
-      o.dx = Math.min(o.width, o.x + Math.floor(o.wmin + Math.random() * (o.wmax - o.wmin)));
-      //
-      //
-      //
+
       if (o.ly) {
         var segs = [];
         [
@@ -92,6 +88,7 @@ Overlap.new = function(props) {
 
         if (segs.length === 0) {
           console.log(" no seg ");
+          o.dx = o.gapmin + Math.floor(Math.random() * (o.gapmax - o.gapmin));
           o.x = o.dx;
           o.ly = 0;
           continue;
@@ -104,6 +101,11 @@ Overlap.new = function(props) {
       if (!o.dy) {
         console.log("o.dy not defined");
       }
+      //
+      // Note problem here with last rect in row potentially being smaller than wmin
+      //
+      o.dx = Math.min(o.width, o.x + Math.floor(o.wmin + Math.random() * (o.wmax - o.wmin)));
+      //
       //
       //
       var r = Rect.new({
