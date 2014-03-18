@@ -2,3 +2,7 @@
 svg {
   border: 1px solid #aaaaaa;
 }
+
+rect {
+  fill-opacity: 0.5;
+}

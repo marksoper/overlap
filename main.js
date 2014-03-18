@@ -7,7 +7,7 @@ var Rect = {
   defaults: {
     stroke: "#777777",
     "stroke-width": 5,
-    "stroke-opacity": 0.8, 
+    "stroke-opacity": 0.4, 
     fill: "#ffffff",
     "fill-opacity": 0.0
   }
@@ -69,21 +69,35 @@ Overlap.new = function(props) {
     gapmax: props.gapmax || 60
   };
 
+  o.colors = {
+    0: "black",
+    1: "red",
+    2: "blue",
+    3: "green",
+    4: "yellow",
+    5: "pink"
+  };
+
   o.build = function() {
     o.rects = [];
-    var ystart = 0 + o.margin;
+    o.y = 0 + o.margin;
+    var shade;
     while (o.y < o.height) {
-      if (o.rects.length === 0) {
-        ystart = o.rects[o.rects.length - 1][0].dy
+      if (o.rects.length > 0) {
+        o.y = o.rects[o.rects.length - 1][0].dy
       }
-      var o.rects.push(o.buildRow(ystart));
+      shade = Math.min(255, Math.floor(256 * o.rects.length / 8));
+      console.log("building row " + o.rects.length);
+      o.rects.push(o.buildRow({
+        stroke: o.colors[o.rects.length]
+      }));
     }
   };
 
-  o.buildRow = function(ystart) {
+  o.buildRow = function(props) {
+    props = props || {};
     var rects = [];
     o.x = 0 + o.margin;
-    o.y = ystart;
     while (o.x < o.width) {
 
       if (o.ly) {
@@ -109,9 +123,6 @@ Overlap.new = function(props) {
       } else {
         o.dy = o.y + Math.floor(o.hmin + Math.random() * (o.hmax - o.hmin));
       }
-      if (!o.dy) {
-        console.log("o.dy not defined");
-      }
       //
       // Note problem here with last rect in row potentially being smaller than wmin
       //
@@ -119,15 +130,15 @@ Overlap.new = function(props) {
       //
       //
       //
-      var r = Rect.new({
-        x: o.x,
-        y: o.y,
-        dx: o.dx,
-        dy: o.dy
-      });
+      props.x = o.x;
+      props.y = o.y;
+      props.dx = o.dx;
+      props.dy = o.dy;
+      //
+      var r = Rect.new(props);
       rects.push(r);
 
-      console.log("drawing rect with x: " + [o.x, o.y, o.dx, o.dy].join(" , "));
+      //console.log("drawing rect with x: " + [o.x, o.y, o.dx, o.dy].join(" , "));
 
       o.drawRect(r);
       //
