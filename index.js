@@ -24,7 +24,14 @@ Rect.new = function(props) {
   }
 
   r.print = function() {
-    return JSON.stringify(r);
+    return JSON.stringify({
+      x: r.x,
+      y: r.y,
+      dx: r.x + r.width,
+      dy: r.y + r.height,
+      width: r.width,
+      height: r.height
+    });
   };
 
   r.el = function() {
@@ -39,10 +46,10 @@ Rect.new = function(props) {
 
   r.calcBoundary = function() {
     r.boundary = {
-      x: r.x - r.width*(1-r.space)/2,
-      y: r.y - r.height*(1-r.space)/2,
-      width: r.width*(2-r.space),
-      height: r.height*(2-r.space)
+      x: Math.floor(r.x - r.width*(1-r.space)/2),
+      y: Math.floor(r.y - r.height*(1-r.space)/2),
+      width: Math.floor(r.width*(2-r.space)),
+      height: Math.floor(r.height*(2-r.space))
     };
     return r.boundary;
   };
@@ -59,15 +66,29 @@ Rect.new = function(props) {
 
   r.overlapTest = function(c) {
     var b = r.boundary || r.calcBoundary();
-    if ( ( (c.x > b.x + b.width) || (c.y > r.y + r.height) ) || ( (c.x + c.width < b.x) || (c.y + c.height < b.y) ) ) {
-      return false;
+    var corners = [
+      [c.x, c.y],
+      [c.x, c.y + c.height],
+      [c.x + c.width, c.y],
+      [c.x + c.width, c.y + c.height]
+    ];
+    var point;
+    for (var i in corners) {
+      point = corners[i];
+      if ( ( (point[0] >= b.x) && (point[0] <= (b.x + b.width)) ) && ( (point[1] >= b.y) && (point[1] <= (b.y + b.height) ) ) ) {
+        return true;
+      }
     }
-    return true;
+    return false;
   };
 
   r.coreTest = function(c) {
     var core = r.core || r.calcCore();
     var cornersInCore = 0;
+    //
+    // TODO: can optimize by using for loop instead of forEach and breaking
+    // when cornersInCore > 1
+    //
     [
       [c.x, c.y],
       [c.x, c.y + c.height],
@@ -76,9 +97,6 @@ Rect.new = function(props) {
     ].forEach(function(point) {
       if ( (point[0] > r.core.x && point[0] < (r.core.x + r.core.width) ) && (point[1] > r.core.y && point[1] < (r.core.y + r.core.height) ) ) {
         cornersInCore += 1;
-        if (cornersInCore > 1) {
-          return false;
-        }
       }
     });
     if (cornersInCore < 1) {
@@ -88,7 +106,7 @@ Rect.new = function(props) {
   }
 
   r.accept = function(candidate) {
-    return !r.overlapTest(candidate) || r.coreTest(candidate);
+    return !r.overlapTest(candidate); // || r.coreTest(candidate);
   };
 
   return r;
@@ -144,23 +162,22 @@ Set.new = function(props) {
   };
 
   set.rects = [];
+  set.fails = 0;
 
-  set.add = function() {
-    var c = set.random();
+  set.add = function(c) {
     //
     // validate rect
     //
     for (var i=0; i<set.rects.length; i++) {
       var r = set.rects[i];
       if (!r.accept(c)) {
-        console.log("rejecting rect: " + c.print() + "\n conflicts with: " + r.print() );
-        return null;
+        set.fails += 1;
+        return r;
       }
     }
-    console.log("adding rect: " + c.print());
     set.rects.push(c);
     set.el.appendChild(c.el());
-    return c;
+    return true;
   };
 
   set.random = function() {
@@ -172,7 +189,8 @@ Set.new = function(props) {
       x: x,
       y: y,
       width: width,
-      height: height
+      height: height,
+      space: set.space
     });
     return r;
   };
@@ -201,8 +219,18 @@ var main = function() {
   o = {
     s: s
   };
-  for (var i=0; i<5; i++) {
-    o.s.add();
+  var c, added;
+  for (var i=0; i<100; i++) {
+    c = s.random();
+    for (var j=0; j<10; j++) {
+      added = o.s.add(c);
+      if (added === true) {
+        console.log("adding rect after " + j + " attempts: " + c.print());
+        continue;
+      } else {
+        console.log("rejecting rect: " + c.print() + "\n conflicts with: " + added.print() );
+      }
+    }
   }
 };
 
